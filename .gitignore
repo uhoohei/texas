@@ -1,0 +1,17 @@
+logs/
+*.pyc
+.eric4project/
+_eric4project/
+.ropeproject/
+*.log
+*.e4p
+.DS_Store
+*/.DS_Store
+xcode.project/
+.project
+.pydevproject
+.settings
+.idea/
+*.json
+*.apk
+output/
