@@ -6,7 +6,7 @@ import gevent
 from gevent.server import StreamServer
 from gevent.pool import Pool
 
-from controllers.service_base import ServiceBase
+from controllers.services import ServiceBase
 from controllers.player import Player
 from config import *
 import utils

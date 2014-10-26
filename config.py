@@ -122,7 +122,7 @@ COMMANDS_FORMAT[SERVICE_GAME] = {
 
 
 # 服务端错误码列表：类型为short
-ERR_OK = 1
+OK = 1
 ERR_CMD_ERR = -2  # 命令错误
 ERR_VERSION_ERR = -3  # 版本号错误
 ERR_DATA_BROKEN = -6  # 客户端请求数据错误，不符合即定格式

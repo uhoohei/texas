@@ -1,16 +1,11 @@
 # coding:utf-8
 import sys
 import os
-
 import daemonized
-
 from gateway import Gateway
 from models import model_base
 from config import *
-from controllers.service_game import ServiceGame
-from controllers.service_login import ServiceLogin
-from controllers.service_system import ServiceSystem
-from controllers.service_control import ServiceControl
+from controllers.services import *
 import utils
 
 
