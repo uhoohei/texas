@@ -5,18 +5,16 @@ from gevent.server import StreamServer
 from gevent.pool import Pool
 import signal
 
-from utils.singleton import Singleton
 from utils import utils
 from controllers.service_base import ServiceBase
 from controllers.player import Player
-from utils.params_firewall import check_params
 from config import *
 
 
 __all__ = ["Gateway"]
 
 
-class Gateway(Singleton):
+class Gateway(utils.Singleton):
 
     def __init__(self):
         self.__services = {}
@@ -74,7 +72,30 @@ class Gateway(Singleton):
         Player(sock, address).start()
 
     @staticmethod
-    def is_legal_command(data):
+    def check_params(data):
+        service = data[0]
+        cmd = data[1]
+        if not COMMANDS_FORMAT.get(service):
+            print "CMD NOT SET IN FIREWALL: ", service, cmd
+            return True
+
+        api_format = COMMANDS_FORMAT[service].get(cmd)
+        if api_format == "" and not data:  # 参数为空
+            return True
+
+        if len(api_format) != len(data):  # 参数长度不正确
+            return False
+
+        for i in xrange(0, len(api_format)):
+            if not (api_format[i] == "i" and (isinstance(data[i], int) or isinstance(data[i], long))) \
+                    and not (api_format[i] == "s" and isinstance(data[i], basestring)) \
+                    and not (api_format[i] == "f" and isinstance(data[i], float)) \
+                    and not (api_format[i] == "b" and isinstance(data[i], bool)):
+                return False
+
+        return True
+
+    def is_legal_command(self, data):
         """检查命令是否合法"""
         if not data:
             print 'not data'
@@ -105,7 +126,7 @@ class Gateway(Singleton):
             return False
 
         # 命令类型的检查以及参数个数检查
-        return check_params(data)
+        return self.check_params(data)
 
     def distribute(self, p, ret):
         """分发命令给各个服务"""

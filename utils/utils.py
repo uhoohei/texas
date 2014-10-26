@@ -13,6 +13,22 @@ sys.setdefaultencoding("utf-8")
 sys.path.append('..')
 
 
+class Singleton(object):
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(Singleton, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    @classmethod
+    def share(cls):
+        if not cls._instance:
+            cls()
+        return cls._instance
+
+
 class ObjectDict(dict):
     def __getattr__(self, name):
         try:
