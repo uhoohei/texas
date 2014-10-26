@@ -4,7 +4,7 @@ import os
 from gateway import Gateway
 import daemonized
 
-from models import database
+from models import model_base
 from config import *
 from utils import utils
 
@@ -20,7 +20,7 @@ log_file = os.path.join(CONFIG.log_path, CONFIG.log_file_name)
 # 启动服务
 def main():
     utils.log('started with pid %d' % (os.getpid()), log_file)
-    database.keep_redis_connect()
+    model_base.keep_redis_connect()
 
     # manager.init()
     gw = Gateway.share()

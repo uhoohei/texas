@@ -35,6 +35,8 @@ class ReadOnlyObjectDict(ObjectDict):
 def str_to_int(data):
     if not data:
         return 0
+    if data.isdigit():
+        return int(data)
     try:
         return int(data)
     except Exception as data:
