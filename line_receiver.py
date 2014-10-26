@@ -1,11 +1,11 @@
 #coding:utf-8
 
 import gevent
-from utils import utils
+import utils
 
 
-# 行协议
 class BaseLineReceiver(gevent.Greenlet):
+    """行协议"""
 
     def __init__(self, sock, address):
         self.sock = sock

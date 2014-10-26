@@ -2,10 +2,9 @@
 
 import sys
 sys.path.append('..')
-
+import utils
 import key
 from model_base import share_redis
-from utils import utils
 
 
 def get_by_key(session_key):

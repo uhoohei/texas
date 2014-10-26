@@ -1,17 +1,17 @@
 # coding:utf-8
 import sys
 import os
-from gateway import Gateway
+
 import daemonized
 
+from gateway import Gateway
 from models import model_base
 from config import *
-from utils import utils
-
 from controllers.service_game import ServiceGame
 from controllers.service_login import ServiceLogin
 from controllers.service_system import ServiceSystem
 from controllers.service_control import ServiceControl
+import utils
 
 
 log_file = os.path.join(CONFIG.log_path, CONFIG.log_file_name)

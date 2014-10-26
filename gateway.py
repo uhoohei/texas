@@ -1,14 +1,15 @@
 #coding:utf-8
 
+import signal
+
 import gevent
 from gevent.server import StreamServer
 from gevent.pool import Pool
-import signal
 
-from utils import utils
 from controllers.service_base import ServiceBase
 from controllers.player import Player
 from config import *
+import utils
 
 
 __all__ = ["Gateway"]

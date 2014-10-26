@@ -1,8 +1,9 @@
 # coding:utf-8
 
 import os as _os
-from utils import utils as _utils
-from utils.utils import ReadOnlyObjectDict as _ReadOnlyObjectDict
+
+import utils as _utils
+from utils import ReadOnlyObjectDict as _ReadOnlyObjectDict
 
 
 # APP根目录
