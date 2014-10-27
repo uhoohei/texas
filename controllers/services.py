@@ -488,7 +488,7 @@ class ServiceGame(utils.Singleton, ServiceBase):
             if waiting_num <= 0:
                 continue
 
-            p = self.pop_player(zid)
+            p = None  # self.pop_player(zid)
             if not p:  # 玩家数据异常
                 continue
 

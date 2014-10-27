@@ -7,7 +7,7 @@ from config import *
 import utils
 from utils import DelayCall
 
-import card
+import poker
 import player
 from poker import Poker
 
@@ -34,6 +34,7 @@ ROUND_START_SECONDS = 6  # 开局后直到第一个玩家响应的等待时间�
 
 
 class Referee(object):
+    """游戏裁判"""
 
     def __init__(self, ret):
         from services import ServiceGame
@@ -471,7 +472,7 @@ class Referee(object):
         self.cancel()
         [c1, c2, c3] = p1.cards
         [d1, d2, d3] = p2.cards
-        is_win = card.is_bigger(c1, c2, c3, d1, d2, d3)
+        is_win = poker.is_bigger(c1, c2, c3, d1, d2, d3)
         if is_win:  # P2被淘汰
             self.__winner = p1
             self.save_round_result(p2.seatid, False, p2.total_bet, 0)
@@ -801,7 +802,7 @@ class Referee(object):
 
             [c1, c2, c3] = robot.cards
             [d1, d2, d3] = p.cards
-            if not card.is_bigger(c1, c2, c3, d1, d2, d3):
+            if not poker.is_bigger(c1, c2, c3, d1, d2, d3):
                 flag = False
                 break
 

@@ -22,6 +22,7 @@ HEART_BEAT_SECONDS = 51  # 玩家端的心跳超时时间
 
 
 class Player(PlayerSession):
+    """玩家对象"""
 
     # 玩家与机器人通用的初始化
     def __init__(self, sock, address):

@@ -272,6 +272,7 @@ def make_uinfo_data(u):
 
 
 class Robot(Player):
+    """机器人对象"""
 
     def __init__(self):
         super(Player, self).__init__(None, None)
