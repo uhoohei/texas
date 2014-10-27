@@ -58,17 +58,17 @@ def is_card(c):
 
 def card_type1(card_list):
     """
-    一张牌的大小比较：
-    高牌，高牌的值，花色
+    一张牌的大小比较顺序
+    高牌，高牌的值
     """
-    return value(card_list[0]), suit(card_list[0])
+    return value(card_list[0])
 
 
 def card_type2(card_list):
     """
-    二张牌的大小比较：
+    二张牌的大小比较顺序
     对子：对子的值
-    高牌：高牌的值，高牌的花色
+    高牌：高牌的值
     """
     [c1, c2] = card_list
     if value(c1) == value(c2):
