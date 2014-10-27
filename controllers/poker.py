@@ -14,11 +14,6 @@ TWO_PAIRS = 3  # 两对
 ONE_PAIR = 2  # 一对
 HIGH_CARD = 1  # 高牌
 
-
-# 方块(0) 梅花(1) 红桃(2) 黑桃(3)
-SUIT_STR = ("D", "C", "H", "S")
-VALUE_STR = ("J", "Q", "K", "A")
-
 EQUAL = 1  # 相等
 MORE = 2  # 大于
 LESS = 3  # 小于
@@ -33,7 +28,7 @@ def get_all_cards():
     return cards
 
 
-# 制造一张扑克牌，炸金花没有大小王，这里也去掉了2-6的小牌
+# 制造一张扑克牌，去掉大小王
 def make(_suit, _value):
     if _suit < 1 or _suit > 4:
         raise ValueError
@@ -61,72 +56,356 @@ def is_card(c):
     return False
 
 
-# 判断所给牌是不是顺子,注意这里不判断是不是顺金,只判断是不是顺.
-def is_shun_zi(c1, c2, c3):
-    if not is_card(c1) or not is_card(c2) or not is_card(c3):
-        return False
-    tmp = [value(c1), value(c2), value(c3)]
-    tmp.sort()
-    if tmp[0] + 1 == tmp[1] and tmp[1] == tmp[2] - 1:
-        return True
-    return False
+def card_type1(card_list):
+    """
+    一张牌的大小比较：
+    高牌，高牌的值，花色
+    """
+    return value(card_list[0]), suit(card_list[0])
 
 
-# 返回值是一个tuple, (牌型，最大一张牌的值，第二大的牌的值，第三大的牌的值)
-def get_type(c1, c2, c3):
-    """【牌型说明】
-    豹子：三张同样大小的牌。
-    顺金：花色相同的相连三张牌。
-    金花：三张花色相同的牌。
-    顺子：三张花色不全相同的相连三张牌。
-    对子：三张牌中有两张点数同样大小的牌。(对子是不可能组合成金花的,因为只有一副牌)
-    特殊：花色不同的235牌 。
-    单张：除以上牌型的牌。
-    检查传过来的三张牌,并返回牌型,返回牌型的大小"""
-    if not is_card(c1) or not is_card(c2) or not is_card(c3):
-        raise ValueError
-    values = [value(c1), value(c2), value(c3)]
-    values.sort()
-    values.reverse()
-    card_type = DANZHANG
-    is_shun = is_shun_zi(c1, c2, c3)
-    if suit(c1) == suit(c2) and suit(c2) == suit(c3):  # 金花与顺金
-        if is_shun:
-            card_type = SHUNJIN
+def card_type2(card_list):
+    """
+    二张牌的大小比较：
+    对子：对子的值
+    高牌：高牌的值，高牌的花色
+    """
+    [c1, c2] = card_list
+    if value(c1) == value(c2):
+        return ONE_PAIR, value(c1)
+    return (HIGH_CARD, value(c1)) if value(c1) > value(c2) else (HIGH_CARD, value(c2))
+
+
+def card_sort_cmp(c1, c2):
+    """sort方法的自定义比较函数，用于比较两张扑克牌的大小"""
+    if value(c1) > value(c2):
+        return 1
+    elif value(c1) < value(c2):
+        return -1
+    if suit(c1) > suit(c2):
+        return 1
+    elif suit(c1) < suit(c2):
+        return -1
+    return 0
+
+
+def card_type3(card_list):
+    """
+    注意：sort后调用函数的clist的值确实被改变了
+    三张牌的大小比较：
+    三条：三条的值
+    对子：对子的值，大单张的值，大单张的花色
+    高牌：高牌的值，高牌的花色
+    """
+    card_list.sort(card_sort_cmp, reverse=True)
+    [c1, c2, c3] = card_list
+    if value(c1) == value(c2) and value(c2) == value(c3):
+        return THREE_OF_A_KIND, value(c1)
+    if value(c1) == value(c2):
+        return ONE_PAIR, value(c1), value(c3), suit(c3)
+    if value(c2) == value(c3):
+        return ONE_PAIR, value(c2), value(c1), suit(c1)
+    return HIGH_CARD, value(c1), suit(c1)
+
+
+def card_type4(card_list):
+    """
+    四张牌的大小比较 ：
+    四条：四条的值
+    三条：三条的值
+    对子：对子的值，大单张的值，大单张的花色
+    高牌：高牌的值，高牌的花色
+    """
+    card_list.sort(card_sort_cmp, reverse=True)
+    [c1, c2, c3, c4] = card_list
+    if value(c1) == value(c2) and value(c2) == value(c3) and value(c3) == value(c4):
+        return FOUR_OF_A_KIND, value(c1)
+    # 排序后要么前三张成三条，要么后三张成三条
+    if value(c1) == value(c2) and value(c2) == value(c3):  # 第一种情况的三条
+        return THREE_OF_A_KIND, value(c1)
+    if value(c2) == value(c3) and value(c3) == value(c4):  # 第二种情况的三条
+        return THREE_OF_A_KIND, value(c2)
+    if value(c1) == value(c2):  # 1,2成对子
+        return ONE_PAIR, value(c1), value(c3), suit(c3)
+    elif value(c2) == value(c3):  # 2,3成对子
+        return ONE_PAIR, value(c2), value(c1), suit(c1)
+    elif value(c3) == value(c4):  # 3,4成对子
+        return ONE_PAIR, value(c3), value(c1), suit(c1)
+    return HIGH_CARD, value(c1), suit(c1)
+
+
+def get_compare(card_list):
+    """获得牌之间的比较关系，不要直接调用，要先对clist排序"""
+    ret = []  # 保存牌之间的大小比较关系
+    for i in range(0, len(card_list) - 1):
+        if value(card_list[i]) == value(card_list[i + 1]):
+            ret.append(3)  # 相等
+        elif value(card_list[i]) == value(card_list[i + 1]) + 1:
+            ret.append(2)  # 大于1
         else:
-            card_type = JINHUA
-    elif is_shun:  # 顺子
-        card_type = SHUNZI
-    elif values[0] == values[1] and values[1] == values[2]:  # 豹子
-        card_type = BAOZI
-    elif values[0] == values[1] or values[1] == values[2]:  # 对子
-        card_type = DUIZI
-        if values[1] == values[2]:
-            values = [values[1], values[1], values[0]]
-    return tuple([card_type] + values)
-
-
-# 豹子>顺金>金花>顺子>对子>散牌。
-# 比牌，所属牌型和每张牌的大小来判断两手牌的大小
-def compare(c1, c2, c3, d1, d2, d3):
-    type1 = get_type(c1, c2, c3)
-    type2 = get_type(d1, d2, d3)
-    i = 0
-    ret = EQUAL
-    for item in type1:
-        if item > type2[i]:
-            ret = MORE
-            break
-        elif item < type2[i]:
-            ret = LESS
-            break
-        i += 1
+            ret.append(1)  # 大于多
     return ret
 
 
-# 当且仅当第一手牌大于第二手牌的时候返回True
-def is_bigger(c1, c2, c3, d1, d2, d3):
-    return True if compare(c1, c2, c3, d1, d2, d3) == MORE else False
+def find_biggest_by_three_equal(card_list, compare):
+    """有3个及以上相等的条件，则可能的牌型只有四条，葫芦，三对中的一种"""
+    first_equal = compare.index(3)
+    value_dict = {}
+    for item in card_list:
+        if not value_dict.get(value(item)):
+            value_dict[value(item)] = []
+        value_dict[value(item)].append(item)
+    fh_value1 = 0
+    fh_value2 = 0
+    pairs = []
+    max_card = None  # 最大单牌
+    for cvalue, cardlist in value_dict.items():
+        len_of_equal = len(cardlist)
+        if len_of_equal == 4:  # 成四条
+            bigest_card = card_list[4] if value(
+                cardlist[0]) == value(card_list[0]) else card_list[0]
+            rlist = cardlist + [bigest_card]
+            rtype = (FOUR_OF_A_KIND, value(rlist[0]))
+            return rtype, rlist
+        elif len_of_equal == 3:  # 成葫芦了,注意这里可能成两个三条
+            if not fh_value1:
+                fh_value1 = cvalue
+            elif not fh_value2:
+                fh_value2 = cvalue
+        elif len_of_equal == 2:  # 成对子了
+            pairs.append(cvalue)
+        elif len_of_equal == 1 and not max_card:
+            max_card = cardlist[0]
+
+    pairs.sort(reverse=True)
+    if fh_value1:  # 成葫芦了
+        rlist = value_dict[fh_value1]
+        if fh_value2:  # 两个三条选一个
+            rlist = value_dict[max(fh_value1, fh_value2)]
+            rlist += value_dict[min(fh_value1, fh_value2)][0:2]
+        else:  # 标准葫芦
+            rlist += value_dict[pairs[0]]
+        rtype = (FULL_HOUSE, value(rlist[0]))
+        return rtype, rlist
+    if value(value_dict[pairs[2]][0]) > value(max_card):
+        max_card = value_dict[pairs[2]][0]
+    rlist = value_dict[pairs[0]] + \
+        value_dict[pairs[1]] + [max_card]  # 成两对，要从中选择两对出来
+    rtype = (TWO_PAIRS, value(rlist[0]), value(
+        rlist[2]), value(rlist[4]), suit(rlist[4]))
+    return rtype, rlist
+
+
+def find_biggest_by_flush(card_list, compare):
+    """成同花的情况下返回牌型"""
+    flush_count = [0, 0, 0, 0]  # 花色统计
+    for c in card_list:
+        flush_count[suit(c) - 1] += 1
+    for i in range(0, len(flush_count)):
+        if flush_count[i] >= 5:  # 成同花了
+            suitlist = []
+            for item in card_list:
+                if suit(item) == i + 1:
+                    suitlist.append(item)
+            # 在同花列表里面寻找同花顺与皇家同花顺
+            suitcompare = get_compare(suitlist)
+            ret_straight = find_biggest_by_straight(suitlist, suitcompare)
+            if ret_straight:  # 成同花顺和皇家同花顺
+                rtype, rlist = ret_straight
+                rtype = (STRAIGHT_FLUSH, value(rlist[0]), suit(rlist[0]))
+                if value(rlist[0]) == 14:
+                    rtype = (ROYAL_FLUSH, suit(rlist[0]))
+                return rtype, rlist
+            ret_special = find_biggest_by_special_straight(
+                suitlist, suitcompare)
+            if ret_special:  # A2345小同花顺
+                rtype, rlist = ret_special
+                rtype = (STRAIGHT_FLUSH, value(rlist[1]), suit(rlist[1]))
+                return rtype, rlist
+            rlist = suitlist[0:5]  # 普通同花
+            rtype = (FLUSH, value(rlist[0]), suit(rlist[0]))
+            return rtype, rlist
+    return False
+
+
+def find_biggest_by_straight(card_list, compare):
+    """寻找顺子"""
+    rlist = []
+    for i in range(0, len(compare)):
+        if not rlist:
+            rlist.append(card_list[i])
+        if compare[i] == 2:
+            rlist.append(card_list[i + 1])
+        elif compare[i] == 3:
+            continue
+        else:
+            rlist = []
+        if len(rlist) >= 5:
+            break
+    if len(rlist) >= 5:  # 成顺子了
+        rlist = rlist[0:5]
+        rtype = (STRAIGHT, value(rlist[0]), suit(rlist[0]))
+        return rtype, rlist
+    return False
+
+
+_special_straight = [14, 5, 4, 3, 2]  # 成A2345小顺子
+# 寻找特殊顺子
+
+
+def find_biggest_by_special_straight(card_list, compare):
+    rlist = []
+    rvalue = []
+    for item in card_list:
+        if value(item) in _special_straight:
+            if value(item) not in rvalue:
+                rlist.append(item)
+                rvalue.append(value(item))
+    if rvalue == _special_straight:
+        rtype = (STRAIGHT, value(rlist[1]), suit(rlist[1]))
+        return rtype, rlist
+    return False
+
+
+def find_biggest_by_two_equal(card_list, compare):
+    """寻找两对或三条"""
+    first_index = compare.index(3)
+    if first_index <= 4 and compare[first_index] == compare[first_index + 1]:
+        rlist = card_list[first_index:(first_index + 3)]  # 成三条
+        if first_index > 1:
+            rlist += [card_list[0], card_list[1]]
+        elif first_index == 0:
+            rlist += [card_list[3], card_list[4]]
+        elif first_index == 1:
+            rlist += [card_list[0], card_list[4]]
+        rtype = (THREE_OF_A_KIND, value(card_list[first_index]))
+        return rtype, rlist
+    max_card = None  # 成两对了
+    rlist = []
+    for i in range(0, len(compare)):
+        if compare[i] == 3:
+            rlist.append(card_list[i])
+            rlist.append(card_list[i + 1])
+            continue
+    for i in range(0, len(compare)):
+        if not card_list[i] in rlist:
+            max_card = card_list[i]
+            break
+    rlist += [max_card]
+    rtype = (TWO_PAIRS, value(rlist[0]), value(
+        rlist[2]), value(rlist[4]), suit(rlist[4]))
+    return rtype, rlist
+
+
+def find_biggest_by_one_equal(card_list, compare):
+    """寻找对子"""
+    rlist = []
+    first_index = compare.index(3)
+    rlist.append(card_list[first_index])
+    rlist.append(card_list[first_index + 1])
+    if first_index > 2:
+        rlist += card_list[0:3]
+    elif first_index == 0:
+        rlist += card_list[2:5]
+    elif first_index == 1:
+        rlist += [card_list[0]]
+        rlist += card_list[3:5]
+    elif first_index == 2:
+        rlist += card_list[0:2]
+        rlist += [card_list[4]]
+    rtype = (ONE_PAIR, value(rlist[0]), value(rlist[2]), suit(rlist[2]))
+    return rtype, rlist
+
+
+def find_biggest_high_card(card_list, compare):
+    """寻找高牌"""
+    ctype = HIGH_CARD  # 成高牌
+    rtype = (ctype, value(card_list[0]), suit(card_list[0]))
+    return rtype, card_list[0:5]
+
+
+def find_biggest2(cl):
+    """
+    五张牌的大小比较：不同牌型按以下顺序确定大小，同牌型时按顺序比较后面的特征值
+    皇家同花顺，最大牌的花色
+    同花顺，最大牌的值，最大牌的花色
+    四条，四条的牌的值
+    葫芦，三条的牌的值
+    同花，第一大牌的值，第一大牌的花色
+    顺子，第一大牌的值，第一大牌的花色
+    三条，三条的牌的值
+    两对，第一大对的值，第二大对的值，最大单牌的值，最大单牌的花色
+    一对，对子的值，最大单牌的值，最大单牌的花色
+    高牌，高牌的值，高牌的花色
+    杂牌，杂牌的值，杂牌的花色
+    """
+    if len(cl) != 7 or 0 in cl:
+        return False
+    card_list = [cl[0], cl[1], cl[2], cl[3], cl[4], cl[5], cl[6]]
+    card_list.sort(card_sort_cmp, reverse=True)
+    compare = get_compare(card_list)  # 保存牌之间的大小比较关系
+    equal_num = compare.count(3)
+    # 如果有3个及以上相等的条件，则可能的牌型只有四条、葫芦、两对中的一种
+    if equal_num >= 3:
+        return find_biggest_by_three_equal(card_list, compare)
+
+    ret_flush = find_biggest_by_flush(card_list, compare)
+    if ret_flush:
+        return ret_flush  # 成同花的判断
+    than_one_num = compare.count(2)
+    if than_one_num >= 4:  # 是否成顺判断
+        ret_straight = find_biggest_by_straight(card_list, compare)
+        if ret_straight:
+            return ret_straight
+
+    if than_one_num >= 3:  # 检查是否成特殊顺A2345
+        ret_special = find_biggest_by_special_straight(card_list, compare)
+        if ret_special:
+            return ret_special
+
+    if equal_num == 2:  # 连续的两个相等则成三条,两个相等则成两对
+        return find_biggest_by_two_equal(card_list, compare)
+
+    if equal_num == 1:  # 成对子了
+        return find_biggest_by_one_equal(card_list, compare)
+    return find_biggest_high_card(card_list, compare)  # 高牌与杂牌
+
+
+def get_poker_type(card_list):
+    """判断牌型及其用来比较大小的关键数值"""
+    clen = len(card_list)
+    if 4 == clen:
+        return card_type4(card_list)
+    if 3 == clen:
+        return card_type3(card_list)
+    if 2 == clen:
+        return card_type2(card_list)
+    if 1 == clen:
+        return card_type1(card_list)
+    raise ValueError
+
+
+def compare(clist1, clist2):
+    """皇家同花顺>同花顺>四条>葫芦>同花>顺>三条>两对>一对>散牌"""
+    type1 = get_poker_type(clist1)
+    type2 = get_poker_type(clist2)
+    return compare_type(type1, type2)
+
+
+def compare_type(type1, type2):
+    """比较已选出的牌型"""
+    i = 0
+    for i in range(0, len(type1)):
+        if type1[i] > type2[i]:
+            return MORE
+        elif type1[i] < type2[i]:
+            return LESS
+    return LESS
+
+
+def to_list(cards_list):
+    """将一组扑克牌转成int表示的列表"""
+    return cards_list
 
 
 # 扑克类，一幅扑克，不含大小王，不含2-6，总共48张牌
