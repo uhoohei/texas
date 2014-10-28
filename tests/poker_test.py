@@ -25,18 +25,18 @@ class CardsTest(unittest.TestCase):
     def test_type1(self):
         """测试单张牌的牌型与大小"""
         c = make(2, 14)
-        ret = card_type1([c])
+        ret = cards_power_single([c])
         self.assertEqual(ret[0], 14)
         self.assertEqual(ret[1], 2)
 
     def test_type2(self):
         c1 = make(2, 3)
         c2 = make(1, 3)
-        ret = card_type2([c1, c2])
+        ret = cards_power_pair([c1, c2])
         self.assertEqual(ONE_PAIR, ret[0])  # 测试3的对子
         self.assertEqual(3, ret[1])
         c2 = make(1, 14)
-        ret = card_type2([c1, c2])
+        ret = cards_power_pair([c1, c2])
         self.assertEqual(HIGH_CARD, ret[0])
         self.assertEqual(14, ret[1])
 
@@ -51,18 +51,18 @@ class CardsTest(unittest.TestCase):
         c1 = make(3, 9)
         c2 = make(2, 9)
         c3 = make(1, 9)
-        ret = card_type3([c1, c2, c3])
+        ret = cards_power_three([c1, c2, c3])
         self.assertEqual(ret[0], THREE_OF_A_KIND)
         self.assertEqual(ret[1], 9)
         c3 = make(1, 10)
-        ret = card_type3([c1, c2, c3])
+        ret = cards_power_three([c1, c2, c3])
         self.assertEqual(ret[0], ONE_PAIR)
         self.assertEqual(ret[1], 9)
         self.assertEqual(ret[2], 10)
         self.assertEqual(ret[3], 1)
         c2 = make(3, 14)
         clist = [c1, c2, c3]
-        ret = card_type3(clist)
+        ret = cards_power_three(clist)
         self.assertEqual(ret[0], HIGH_CARD)
         self.assertEqual(ret[1], 14)
         self.assertEqual(ret[2], 3)
@@ -83,16 +83,16 @@ class CardsTest(unittest.TestCase):
         c3 = make(1, 5)
         c4 = make(3, 5)
 
-        ret = card_type4([c1, c2, c3, c4])
+        ret = cards_power_four([c1, c2, c3, c4])
         self.assertEqual(FOUR_OF_A_KIND, ret[0])
         self.assertEqual(5, ret[1])
 
         c3 = make(1, 10)
-        ret = card_type4([c1, c2, c3, c4])
+        ret = cards_power_four([c1, c2, c3, c4])
         self.assertEqual(THREE_OF_A_KIND, ret[0])
         self.assertEqual(value(c1), ret[1])
         c3 = make(1, 2)
-        ret = card_type4([c1, c2, c3, c4])
+        ret = cards_power_four([c1, c2, c3, c4])
         self.assertEqual(THREE_OF_A_KIND, ret[0])
         self.assertEqual(value(c2), ret[1])
 
@@ -101,7 +101,7 @@ class CardsTest(unittest.TestCase):
         for i in range(0, 5):
             clist = [c1, c2, c3, c4]
             random.shuffle(clist)
-            ret = card_type4(clist)
+            ret = cards_power_four(clist)
             self.assertTrue(ONE_PAIR == ret[0])
             self.assertTrue(5 == ret[1])
             self.assertTrue(9 == ret[2])
@@ -109,7 +109,7 @@ class CardsTest(unittest.TestCase):
 
         c1 = make(2, 8)
         c4 = make(2, 7)
-        ret = card_type4([c1, c2, c3, c4])
+        ret = cards_power_four([c1, c2, c3, c4])
         self.assertEqual(HIGH_CARD, ret[0])
         self.assertEqual(9, ret[1])
         self.assertEqual(1, ret[2])
@@ -145,7 +145,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):  # 测试顺子
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "2:", time.time() - tmptime
         self.assertTrue(rtype[0] == STRAIGHT)
         self.assertTrue(rtype[1] == 8)
@@ -164,7 +164,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):  # 测试A2345特殊顺子
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "2:", time.time() - tmptime
         self.assertTrue(rtype[0] == STRAIGHT)
         self.assertTrue(rtype[1] == 5)
@@ -180,7 +180,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(1, item))
         for i in range(0, 100):  # 测试皇家同花顺
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "3:", time.time() - tmptime
         self.assertTrue(rtype[0] == ROYAL_FLUSH)
         self.assertTrue(rtype[1] == 1)
@@ -195,7 +195,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(1, item))
         for i in range(0, 100):  # 测试同花顺
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "4:", time.time() - tmptime
         self.assertTrue(rtype[0] == STRAIGHT_FLUSH)
         self.assertTrue(rtype[1] == 13)
@@ -211,7 +211,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(1, item))
         for i in range(0, 100):  # 测试同花
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "4:", time.time() - tmptime
         self.assertTrue(rtype[0] == FLUSH)
         self.assertTrue(rtype[1] == 13)
@@ -227,7 +227,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(1, item))
         for i in range(0, 100):  # 测试A2345同花顺
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "5:", time.time() - tmptime
         self.assertTrue(rtype[0] == STRAIGHT_FLUSH)
         self.assertTrue(rtype[1] == 5)
@@ -243,7 +243,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):  # 测试四条
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "6:", time.time() - tmptime
         self.assertTrue(rtype[0] == FOUR_OF_A_KIND)
         self.assertTrue(rtype[1] == 13)
@@ -258,7 +258,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):  # 测试葫芦1
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "7:", time.time() - tmptime
         self.assertTrue(rtype[0] == FULL_HOUSE)
         self.assertTrue(rtype[1] == 6)
@@ -273,7 +273,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):  # 测试葫芦2
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "8:", time.time() - tmptime
         self.assertTrue(rtype[0] == FULL_HOUSE)
         self.assertTrue(rtype[1] == 3)
@@ -288,7 +288,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):  # 测试三对的情况1
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "8:", time.time() - tmptime
         self.assertTrue(rtype[0] == TWO_PAIRS)
         self.assertTrue(rtype[1] == 14)
@@ -306,7 +306,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):  # 测试三对的情况2
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "9:", time.time() - tmptime
         self.assertTrue(rtype[0] == TWO_PAIRS)
         self.assertTrue(rtype[1] == 14)
@@ -325,7 +325,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):  # 测试三对的情况2
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "10:", time.time() - tmptime
         self.assertTrue(rtype[0] == THREE_OF_A_KIND)
         self.assertTrue(rtype[1] == 11)
@@ -341,7 +341,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "11:", time.time() - tmptime
         self.assertTrue(rtype[0] == TWO_PAIRS)
         self.assertTrue(rtype[1] == 8)
@@ -360,7 +360,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "11:", time.time() - tmptime
         self.assertTrue(rtype[0] == TWO_PAIRS)
         self.assertTrue(rtype[1] == 8)
@@ -380,7 +380,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "11:", time.time() - tmptime
         # print rtype, cards_to_str(rlist)
         self.assertTrue(rtype[0] == TWO_PAIRS)
@@ -400,7 +400,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "11:", time.time() - tmptime
         self.assertTrue(rtype[0] == ONE_PAIR)
         self.assertTrue(rtype[1] == 8)
@@ -418,7 +418,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "12:", time.time() - tmptime
         self.assertTrue(rtype[0] == ONE_PAIR)
         self.assertTrue(rtype[1] == 10)
@@ -436,7 +436,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "13:", time.time() - tmptime
         self.assertTrue(rtype[0] == HIGH_CARD)
         self.assertTrue(rtype[1] == 14)
@@ -453,7 +453,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         for i in range(0, 100):
-            rtype, rlist = find_biggest2(clist)
+            rtype, rlist = search_biggest_cards(clist)
         print "14:", time.time() - tmptime
         self.assertTrue(rtype[0] == HIGH_CARD)
         self.assertTrue(rtype[1] == 9)
@@ -467,9 +467,9 @@ class CardsTest(unittest.TestCase):
             4, 2), make(3, 11), make(1, 11), make(4, 6)]
         cl2 = [make(4, 11), make(4, 10), make(2, 11), make(
             4, 7), make(3, 4), make(1, 14), make(1, 12)]
-        type1, bigfive1 = find_biggest2(cl1)
-        type2, bigfive2 = find_biggest2(cl2)
-        self.assertTrue(compare_type(type1, type2) == MORE)
+        type1, bigfive1 = search_biggest_cards(cl1)
+        type2, bigfive2 = search_biggest_cards(cl2)
+        self.assertTrue(compare_by_cards_type(type1, type2) == MORE)
 
     def test_three_equal(self):
         tmptime = time.time()
@@ -480,7 +480,7 @@ class CardsTest(unittest.TestCase):
         for item in data:
             clist.append(make(item[0], item[1]))
         clist += [0, 0, 0]
-        self.assertFalse(find_biggest2(clist))
+        self.assertFalse(search_biggest_cards(clist))
 
     # 测试扑克重置,发牌
     def test_init(self):
