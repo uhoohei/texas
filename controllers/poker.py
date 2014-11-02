@@ -65,7 +65,7 @@ def cards_power_single(card_list):
     一张牌的大小比较顺序
     高牌，高牌的值
     """
-    return value(card_list[0])
+    return value(card_list[0]), 0
 
 
 def cards_power_pair(card_list):
@@ -99,7 +99,7 @@ def cards_power_three(card_list):
     三张牌的大小比较：
     三条：三条的值
     对子：对子的值，大单张的值
-    高牌：高牌的值，高牌的花色
+    高牌：牌1的值，牌2的值，牌3的值
     """
     card_list.sort(card_sort_cmp, reverse=True)
     [c1, c2, c3] = card_list
@@ -109,7 +109,7 @@ def cards_power_three(card_list):
         return ONE_PAIR, value(c1), value(c3)
     if value(c2) == value(c3):
         return ONE_PAIR, value(c2), value(c1)
-    return HIGH_CARD, value(c1)
+    return HIGH_CARD, value(c1), value(c2), value(c3)
 
 
 def cards_power_four(card_list):
@@ -117,8 +117,9 @@ def cards_power_four(card_list):
     四张牌的大小比较 ：
     四条：四条的值
     三条：三条的值
-    对子：对子的值，大单张的值
-    高牌：高牌的值
+    两对：对1的值，对2的值
+    对子：对子的值，高牌的值1，高牌的值2
+    高牌：高牌的值1,高牌的值2,高牌的值3,高牌的值4
     """
     card_list.sort(card_sort_cmp, reverse=True)
     [c1, c2, c3, c4] = card_list
@@ -129,13 +130,15 @@ def cards_power_four(card_list):
         return THREE_OF_A_KIND, value(c1)
     if value(c2) == value(c3) and value(c3) == value(c4):  # 第二种情况的三条
         return THREE_OF_A_KIND, value(c2)
+    if value(c1) == value(c2) and value(c3) == value(c4):  # 两对
+        return TWO_PAIRS, value(c1), value(c3)
     if value(c1) == value(c2):  # 1,2成对子
-        return ONE_PAIR, value(c1), value(c3)
+        return ONE_PAIR, value(c1), value(c3), value(c4)
     elif value(c2) == value(c3):  # 2,3成对子
-        return ONE_PAIR, value(c2), value(c1)
+        return ONE_PAIR, value(c2), value(c1), value(c4)
     elif value(c3) == value(c4):  # 3,4成对子
-        return ONE_PAIR, value(c3), value(c1)
-    return HIGH_CARD, value(c1)
+        return ONE_PAIR, value(c3), value(c1), value(c2)
+    return HIGH_CARD, value(c1), value(c2), value(c3), value(c4)
 
 
 def calc_neighboring_compare_relationship(card_list):
@@ -409,12 +412,10 @@ def compare_by_cards_type(type1, type2):
 class Poker:
 
     def __init__(self):
-        self.__cards = []  # 扑克所含的所有牌
+        self.__cards = get_all_cards()  # 扑克所含的所有牌
         self.__cursor = 0  # 当前所发到的牌的位置
 
-    def init(self):
-        if len(self.__cards) != 32:
-            self.__cards = get_all_cards()
+    def shuffle(self):
         self.__cursor = 0  # 已发牌清0
         random.shuffle(self.__cards)
 
