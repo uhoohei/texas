@@ -125,20 +125,9 @@ class CardsTest(unittest.TestCase):
         for c in clist:
             self.assertTrue(0 < c)
 
-    def test_search_biggest(self):
+    def test_search_biggest_cards(self):
         """
-        # 测试七选五的算法2，要挑出最大的牌
-        五张牌的大小比较：不同牌型按以下顺序确定大小，同牌型时按顺序比较后面的特征值
-        皇家同花顺，最大牌的花色
-        同花顺，最大牌的值，最大牌的花色
-        四条，四条的牌的值
-        葫芦，三条的牌的值
-        同花，第一大牌的值，第一大牌的花色
-        顺子，第一大牌的值，第一大牌的花色
-        三条，三条的牌的值
-        两对，第一大对的值，第二大对的值，最大单牌的值，最大单牌的花色
-        一对，对子的值，最大单牌的值，最大单牌的花色
-        高牌，高牌的值，高牌的花色
+        七选五的算法，要挑出最大的牌
         """
         test_time = time.time()
         data = [[1, 3], [2, 4], [3, 5], [4, 6], [1, 7], [2, 8], [4, 8]]
@@ -152,7 +141,6 @@ class CardsTest(unittest.TestCase):
         print "2:", time.time() - test_time
         self.assertTrue(ret_type[0] == STRAIGHT)
         self.assertTrue(ret_type[1] == 8)
-        self.assertTrue(ret_type[2] == 4)
         self.assertTrue(value(ret_list[0]) == 8)
         self.assertTrue(suit(ret_list[0]) == 4)
         self.assertTrue(value(ret_list[1]) == 7)
@@ -171,7 +159,6 @@ class CardsTest(unittest.TestCase):
         print "2:", time.time() - test_time
         self.assertTrue(ret_type[0] == STRAIGHT)
         self.assertTrue(ret_type[1] == 5)
-        self.assertTrue(ret_type[2] == 3)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [14, 5, 4, 3, 2])
@@ -186,7 +173,6 @@ class CardsTest(unittest.TestCase):
             ret_type, ret_list = search_biggest_cards(card_list)
         print "3:", time.time() - test_time
         self.assertTrue(ret_type[0] == ROYAL_FLUSH)
-        self.assertTrue(ret_type[1] == 1)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [14, 13, 12, 11, 10])
@@ -202,7 +188,6 @@ class CardsTest(unittest.TestCase):
         print "4:", time.time() - test_time
         self.assertTrue(ret_type[0] == STRAIGHT_FLUSH)
         self.assertTrue(ret_type[1] == 13)
-        self.assertTrue(ret_type[2] == 1)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [13, 12, 11, 10, 9])
@@ -218,7 +203,10 @@ class CardsTest(unittest.TestCase):
         print "4:", time.time() - test_time
         self.assertTrue(ret_type[0] == FLUSH)
         self.assertTrue(ret_type[1] == 13)
-        self.assertTrue(ret_type[2] == 1)
+        self.assertTrue(ret_type[2] == 12)
+        self.assertTrue(ret_type[3] == 10)
+        self.assertTrue(ret_type[4] == 9)
+        self.assertTrue(ret_type[5] == 7)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [13, 12, 10, 9, 7])
@@ -234,7 +222,6 @@ class CardsTest(unittest.TestCase):
         print "5:", time.time() - test_time
         self.assertTrue(ret_type[0] == STRAIGHT_FLUSH)
         self.assertTrue(ret_type[1] == 5)
-        self.assertTrue(ret_type[2] == 1)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [14, 5, 4, 3, 2])
@@ -297,7 +284,6 @@ class CardsTest(unittest.TestCase):
         self.assertTrue(ret_type[1] == 14)
         self.assertTrue(ret_type[2] == 6)
         self.assertTrue(ret_type[3] == 9)
-        self.assertTrue(ret_type[4] == 3)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [14, 14, 6, 6, 9])
@@ -315,7 +301,6 @@ class CardsTest(unittest.TestCase):
         self.assertTrue(ret_type[1] == 14)
         self.assertTrue(ret_type[2] == 6)
         self.assertTrue(ret_type[3] == 3)
-        self.assertTrue(ret_type[4] == 2)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [14, 14, 6, 6, 3])
@@ -350,7 +335,6 @@ class CardsTest(unittest.TestCase):
         self.assertTrue(ret_type[1] == 8)
         self.assertTrue(ret_type[2] == 3)
         self.assertTrue(ret_type[3] == 14)
-        self.assertTrue(ret_type[4] == 2)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [8, 8, 3, 3, 14])
@@ -369,7 +353,6 @@ class CardsTest(unittest.TestCase):
         self.assertTrue(ret_type[1] == 8)
         self.assertTrue(ret_type[2] == 3)
         self.assertTrue(ret_type[3] == 7)
-        self.assertTrue(ret_type[4] == 1)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [8, 8, 3, 3, 7])
@@ -390,7 +373,6 @@ class CardsTest(unittest.TestCase):
         self.assertTrue(ret_type[1] == 14)
         self.assertTrue(ret_type[2] == 8)
         self.assertTrue(ret_type[3] == 6)
-        self.assertTrue(ret_type[4] == 4)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [14, 14, 8, 8, 6])
@@ -408,7 +390,8 @@ class CardsTest(unittest.TestCase):
         self.assertTrue(ret_type[0] == ONE_PAIR)
         self.assertTrue(ret_type[1] == 8)
         self.assertTrue(ret_type[2] == 7)
-        self.assertTrue(ret_type[3] == 1)
+        self.assertTrue(ret_type[3] == 6)
+        self.assertTrue(ret_type[4] == 5)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [8, 8, 7, 6, 5])
@@ -426,7 +409,8 @@ class CardsTest(unittest.TestCase):
         self.assertTrue(ret_type[0] == ONE_PAIR)
         self.assertTrue(ret_type[1] == 10)
         self.assertTrue(ret_type[2] == 14)
-        self.assertTrue(ret_type[3] == 2)
+        self.assertTrue(ret_type[3] == 12)
+        self.assertTrue(ret_type[4] == 11)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [10, 10, 14, 12, 11])
@@ -443,12 +427,14 @@ class CardsTest(unittest.TestCase):
         print "13:", time.time() - test_time
         self.assertTrue(ret_type[0] == HIGH_CARD)
         self.assertTrue(ret_type[1] == 14)
-        self.assertTrue(ret_type[2] == 2)
+        self.assertTrue(ret_type[2] == 12)
+        self.assertTrue(ret_type[3] == 11)
+        self.assertTrue(ret_type[4] == 10)
+        self.assertTrue(ret_type[5] == 8)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [14, 12, 11, 10, 8])
 
-        # 杂牌，杂牌的值，杂牌的花色
         test_time = time.time()
         data = [[1, 2], [2, 3], [3, 4], [4, 6], [3, 7], [1, 8], [2, 9]]
         card_list = []
@@ -460,7 +446,10 @@ class CardsTest(unittest.TestCase):
         print "14:", time.time() - test_time
         self.assertTrue(ret_type[0] == HIGH_CARD)
         self.assertTrue(ret_type[1] == 9)
-        self.assertTrue(ret_type[2] == 2)
+        self.assertTrue(ret_type[2] == 8)
+        self.assertTrue(ret_type[3] == 7)
+        self.assertTrue(ret_type[4] == 6)
+        self.assertTrue(ret_type[5] == 4)
         rvalue = [value(ret_list[0]), value(ret_list[1]), value(
             ret_list[2]), value(ret_list[3]), value(ret_list[4])]
         self.assertTrue(rvalue == [9, 8, 7, 6, 4])

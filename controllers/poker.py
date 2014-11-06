@@ -155,7 +155,7 @@ def calc_neighboring_compare_relationship(card_list):
 
 
 def find_biggest_by_three_equal(card_list):
-    """有3个及以上相等的条件，则可能的牌型只有四条，葫芦，三对中的一种"""
+    """有3个及以上相等的条件，则可能的牌型只有四条，葫芦，三对，两对中的一种"""
     value_dict = {}
     for item in card_list:
         if not value_dict.get(value(item)):
@@ -197,8 +197,7 @@ def find_biggest_by_three_equal(card_list):
         max_card = value_dict[pairs[2]][0]
     rlist = value_dict[pairs[0]] + \
         value_dict[pairs[1]] + [max_card]  # 成两对，要从中选择两对出来
-    rtype = (TWO_PAIRS, value(rlist[0]), value(
-        rlist[2]), value(rlist[4]), suit(rlist[4]))
+    rtype = (TWO_PAIRS, value(rlist[0]), value(rlist[2]), value(rlist[4]))
     return rtype, rlist
 
 
@@ -218,17 +217,17 @@ def find_biggest_by_flush(card_list):
             ret_straight = find_biggest_by_straight(suit_list, suit_compare)
             if ret_straight:  # 成同花顺和皇家同花顺
                 rtype, rlist = ret_straight
-                rtype = (STRAIGHT_FLUSH, value(rlist[0]), suit(rlist[0]))
+                rtype = (STRAIGHT_FLUSH, value(rlist[0]))
                 if value(rlist[0]) == 14:
-                    rtype = (ROYAL_FLUSH, suit(rlist[0]))
+                    rtype = (ROYAL_FLUSH, )
                 return rtype, rlist
             ret_special = find_biggest_by_special_straight(suit_list)
             if ret_special:  # A2345小同花顺
                 rtype, rlist = ret_special
-                rtype = (STRAIGHT_FLUSH, value(rlist[1]), suit(rlist[1]))
+                rtype = (STRAIGHT_FLUSH, value(rlist[1]))
                 return rtype, rlist
             rlist = suit_list[0:5]  # 普通同花
-            rtype = (FLUSH, value(rlist[0]), suit(rlist[0]))
+            rtype = (FLUSH, value(rlist[0]), value(rlist[1]), value(rlist[2]), value(rlist[3]), value(rlist[4]))
             return rtype, rlist
     return False
 
@@ -249,7 +248,7 @@ def find_biggest_by_straight(card_list, compare):
             break
     if len(rlist) >= 5:  # 成顺子了
         rlist = rlist[0:5]
-        rtype = (STRAIGHT, value(rlist[0]), suit(rlist[0]))
+        rtype = (STRAIGHT, value(rlist[0]))
         return rtype, rlist
     return False
 
@@ -267,7 +266,7 @@ def find_biggest_by_special_straight(card_list):
                 rlist.append(item)
                 rvalue.append(value(item))
     if rvalue == _special_straight:
-        rtype = (STRAIGHT, value(rlist[1]), suit(rlist[1]))
+        rtype = (STRAIGHT, value(rlist[1]))
         return rtype, rlist
     return False
 
@@ -297,8 +296,7 @@ def find_biggest_by_two_equal(card_list, compare):
             max_card = card_list[i]
             break
     rlist += [max_card]
-    rtype = (TWO_PAIRS, value(rlist[0]), value(
-        rlist[2]), value(rlist[4]), suit(rlist[4]))
+    rtype = (TWO_PAIRS, value(rlist[0]), value(rlist[2]), value(rlist[4]))
     return rtype, rlist
 
 
@@ -318,32 +316,32 @@ def find_biggest_by_one_equal(card_list, compare):
     elif first_index == 2:
         rlist += card_list[0:2]
         rlist += [card_list[4]]
-    rtype = (ONE_PAIR, value(rlist[0]), value(rlist[2]), suit(rlist[2]))
+    rtype = (ONE_PAIR, value(rlist[0]), value(rlist[2]), value(rlist[3]), value(rlist[4]))
     return rtype, rlist
 
 
 def find_biggest_high_card(card_list):
     """寻找高牌"""
     ctype = HIGH_CARD  # 成高牌
-    rtype = (ctype, value(card_list[0]), suit(card_list[0]))
+    rtype = (ctype, value(card_list[0]), value(card_list[1]), value(card_list[2]),
+             value(card_list[3]), value(card_list[4]))
     return rtype, card_list[0:5]
 
 
 def search_biggest_cards(card_list):
     """
-    7选5的搜索算法
+    七选五的算法，要挑出最大的牌
     五张牌的大小比较：不同牌型按以下顺序确定大小，同牌型时按顺序比较后面的特征值
-    皇家同花顺，最大牌的花色
-    同花顺，最大牌的值，最大牌的花色
+    皇家同花顺
+    同花顺，第一大牌值
     四条，四条的牌的值
     葫芦，三条的牌的值
-    同花，第一大牌的值，第一大牌的花色
-    顺子，第一大牌的值，第一大牌的花色
+    同花，第一大牌值，第二大牌值，第三大牌值，第四大牌值，第五大牌值
+    顺子，第一大牌的值
     三条，三条的牌的值
-    两对，第一大对的值，第二大对的值，最大单牌的值，最大单牌的花色
-    一对，对子的值，最大单牌的值，最大单牌的花色
-    高牌，高牌的值，高牌的花色
-    杂牌，杂牌的值，杂牌的花色
+    两对，第一大对的值，第二大对的值，最大单牌的值
+    一对，对子的值，第一大牌值，第二大牌值，第三大牌值
+    高牌，第一大牌值，第二大牌值，第三大牌值，第四大牌值，第五大牌值
     """
     if len(card_list) != 7 or 0 in card_list:
         return False
