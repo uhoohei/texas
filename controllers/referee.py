@@ -7,7 +7,6 @@ from config import *
 import utils
 from utils import DelayCall
 
-import poker
 import player
 from poker import Poker
 
@@ -15,15 +14,16 @@ MAX_RAISE_RATE = 10  # 单手最高加注倍数上限
 RAISE_RATE_LIST = [1, 2, 5, MAX_RAISE_RATE]  # 允许加注的倍数表
 
 
-TOTAL_SEAT = 5  # 一个桌子的最多坐位数
+TOTAL_SEAT = 9  # 桌子坐位数
+MAX_PLAYERS = 30  # 最多允许的人数
 
 
 # 桌子的状态 0空闲中 1正准备开始 2游戏中 3正在结算
 # 注意顺序不可修改，否则影响游戏进程
-TREADY = 0
-TSTART = 1
-TPLAYING = 2
-TCHECKOUT = 3
+TABLE_READY = 0
+TABLE_START = 1
+TABLE_PLAYING = 2
+TABLE_CHECK_OUT = 3
 
 CALL_SECONDS = 25  # 等待玩家响应的秒数
 FIRST_CALL_SECONDS = 25
@@ -60,13 +60,12 @@ class Referee(object):
 
         self.__timer = None  # 游戏的定时器
         self.__poker = Poker()  # 初始化扑克信息
-        self.__poker.init()
 
         self.__consume = self.manager.zone_consume_chip(self.__zid)  # 消耗金币数
         self.__base_chip = self.manager.zone_base_chip(self.__zid)  # 基数
         self.__limit_chip = self.manager.zone_limit_chip(self.__zid)  # 最低筹码
         self.__total_hands = self.manager.zone_total_hands(self.__zid)  # 最高下注倍数
-        self.__status = TREADY
+        self.__status = TABLE_READY
 
     # 玩家之间的比牌详情
     def duelers_init(self):
@@ -183,8 +182,8 @@ class Referee(object):
 
     # 检查是否已经满足条件可以开始游戏
     def check_start(self):
-        if self.status == TREADY and 3 <= self.play_num:  # 可以开局
-            self.set_status(TSTART)
+        if self.status == TABLE_READY and 3 <= self.play_num:  # 可以开局
+            self.set_status(TABLE_START)
             DelayCall(1, self.game_start)
         else:
             # print 'CheckStart NOT IN START: ', self.status, self.play_num, self.GameWaitSeconds, self.__seats
@@ -194,7 +193,7 @@ class Referee(object):
     # 游戏开局
     def game_start(self):
         self.manager.update_table_player_num(self.__zid, self.__tid, self.play_num)
-        self.set_status(TPLAYING)
+        self.set_status(TABLE_PLAYING)
         self.clear_duel()
         self.clear_round_result()
         self.__winner = None
@@ -204,7 +203,7 @@ class Referee(object):
         self.__curr_seat_id = -1
         self.__round_id += 1
         self.__round_count = 0
-        self.__poker.init()  # 洗牌
+        self.__poker.shuffle()  # 洗牌
         self.duelers_init()  # 比牌关系清除
         self.notify_game_start()  # 开局前通知玩家清理
         self.tax(self.__consume)
@@ -368,7 +367,7 @@ class Referee(object):
     # 处理玩家的游戏动作,包括看牌，下注/跟注，加注，弃牌，比牌，开牌
     def deal_user_action(self, p, ret):
         cmd = ret[1]
-        if self.status != TPLAYING:  # 非游戏中不响应玩家游戏命令
+        if self.status != TABLE_PLAYING:  # 非游戏中不响应玩家游戏命令
             return self.manager.request_fail(p.uid, cmd, ERR_NOT_IN_PLAYING)
         if self.__curr_seat_id != p.seatid:  # 未轮到玩家
             return self.manager.request_fail(p.uid, cmd, ERR_NOT_YOUR_TURN)
@@ -456,35 +455,10 @@ class Referee(object):
     # 玩家比牌
     # 第三轮及之后才可以比牌
     def user_duel(self, p1, p2):
-        if not self.can_duel:
+        if not self.can_duel or not p2:
             self.manager.request_fail(
                 p1.uid, CMD_USER_DUEL, ERR_ROUND_THREE_NEEDED)
             return False
-        chip = self.calc_call_chip(p1.is_dark) * 2
-        if not p1.bet(chip):
-            self.manager.request_fail(p1.uid, CMD_USER_DUEL, ERR_CHIP_NOT_ENOUGH)
-            return False
-
-        self.__wait_seconds = 6
-        self.__total_bet += chip
-        self.save_bet(chip, p1.is_dark)
-        self.save_duel(p1.seatid, p2.seatid)
-        self.cancel()
-        [c1, c2, c3] = p1.cards
-        [d1, d2, d3] = p2.cards
-        is_win = poker.is_bigger(c1, c2, c3, d1, d2, d3)
-        if is_win:  # P2被淘汰
-            self.__winner = p1
-            self.save_round_result(p2.seatid, False, p2.total_bet, 0)
-            p2.on_round_over(self, False, p2.total_bet, 0, player.IN_DIEOUT)
-        else:  # P1被淘汰
-            self.__winner = p2
-            self.save_round_result(p1.seatid, False, p1.total_bet, 0)
-            p1.on_round_over(self, False, p1.total_bet, 0, player.IN_DIEOUT)
-        send_data = [CONFIG.game_id, CMD_USER_DUEL]
-        send_data.extend(
-            [OK, p1.seatid, p2.seatid, chip, int(p1.is_dark), int(is_win), self.__total_bet])
-        self.broad_cast(send_data)
         return True
 
     # 玩家看牌动作
@@ -563,7 +537,7 @@ class Referee(object):
 
     # 通知下一个玩家操作
     def turn_to_next(self, curr_seatid, is_begginer=False):
-        if self.status != TPLAYING:
+        if self.status != TABLE_PLAYING:
             return
 
         if self.__wait_seconds > 0:
@@ -594,7 +568,7 @@ class Referee(object):
 
     # 游戏结算 输赢加减钱
     def check_out(self, winner):
-        if self.status != TPLAYING:
+        if self.status != TABLE_PLAYING:
             self.play_log("checkout error: not in playing. %d" % (self.status, ))
             return
         if not winner:
@@ -603,7 +577,7 @@ class Referee(object):
 
         self.cancel()
         self.__round_count = 0
-        self.set_status(TCHECKOUT)
+        self.set_status(TABLE_CHECK_OUT)
 
         winchip = self.__total_bet
         if winner:
@@ -641,9 +615,9 @@ class Referee(object):
 
     # 结算结束，修改桌子状态，清理钱不够的玩家，准备开始新一局
     def check_out_over(self):
-        if self.status != TCHECKOUT:
+        if self.status != TABLE_CHECK_OUT:
             return
-        self.set_status(TREADY)
+        self.set_status(TABLE_READY)
         self.quit_robot()  # 退出多余的机器人
         self.__winner = None
 
@@ -702,7 +676,7 @@ class Referee(object):
 
     @property
     def game_wait_seconds(self):
-        if self.status != TREADY:
+        if self.status != TABLE_READY:
             return 0
         return utils.timestamp() - self.__game_wait_seconds
 
@@ -716,7 +690,7 @@ class Referee(object):
         if not p or not self.in_table(p.uid):
             return
 
-        if self.play_num <= 1 and self.status != TPLAYING:
+        if self.play_num <= 1 and self.status != TABLE_PLAYING:
             self.update_game_wait_seconds()
 
         send_data = [CONFIG.game_id, CMD_SIT_DOWN,
@@ -730,7 +704,7 @@ class Referee(object):
 
     # 玩家断线重连
     def user_re_connect(self, p):
-        if self.status != TPLAYING:
+        if self.status != TABLE_PLAYING:
             return
         cards = p.cards
         send_data = [CONFIG.game_id, CMD_RE_CONNECT,
@@ -759,7 +733,7 @@ class Referee(object):
 
         self.play_log('user quit %d@%d when %d' %
                      (p.uid, p.seatid, self.status))
-        if self.status == TPLAYING and p.status == player.IN_PLAYING:
+        if self.status == TABLE_PLAYING and p.status == player.IN_PLAYING:
             self.user_fold(p)
             if p.seatid == self.__curr_seat_id:
                 self.turn_to_next(self.__curr_seat_id)
@@ -795,15 +769,14 @@ class Referee(object):
     # 返回当前机器人是否大过所有真人
     def is_winner(self, robot):
         flag = True
+        if not robot:
+            pass
         for i in xrange(0, TOTAL_SEAT):
             p = self.__seats[i]
             if not p or p.status != player.IN_PLAYING or p.isRobot:
                 continue
 
-            [c1, c2, c3] = robot.cards
-            [d1, d2, d3] = p.cards
-            if not poker.is_bigger(c1, c2, c3, d1, d2, d3):
-                flag = False
-                break
+            # [c1, c2, c3] = robot.cards
+            # [d1, d2, d3] = p.cards
 
         return flag
